@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🏃 Registro de Corridas</title>
+
+  <!-- ① SDK Supabase – DEVE vir antes do app.js -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+    :root {
+      --bg:#0f0f1a; --surface:#1a1a2e; --surface2:#16213e;
+      --accent:#e94560; --accent2:#f5a623; --accent3:#4ade80; --accent4:#60a5fa;
+      --text:#e8e8f0; --text-muted:#8888aa; --border:#2a2a45;
+      --success:#4ade80; --radius:12px; --radius-sm:8px;
+    }
+    body { font-family:'Inter',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; padding:0 0 60px; }
+
+    /* ── Login ── */
+    .login-wrap { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px; }
+    .login-box  { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:40px 32px; width:100%; max-width:380px; }
+    .login-logo { font-size:48px; text-align:center; margin-bottom:8px; }
+    .login-title{ font-family:'Space Grotesk',sans-serif; font-size:22px; font-weight:700; text-align:center; color:#fff; margin-bottom:4px; }
+    .login-sub  { font-size:13px; color:var(--text-muted); text-align:center; margin-bottom:28px; }
+    .login-tabs { display:flex; gap:8px; margin-bottom:24px; }
+    .login-tab  { flex:1; padding:8px; border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--surface2); color:var(--text-muted); font-family:'Inter',sans-serif; font-size:13px; font-weight:500; cursor:pointer; transition:all .2s; }
+    .login-tab.active { background:var(--accent); border-color:var(--accent); color:#fff; }
+    .login-form { display:flex; flex-direction:column; gap:14px; }
+    .login-form label { font-size:11px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:.6px; display:block; margin-bottom:4px; }
+    .login-form input { background:var(--bg); border:1px solid var(--border); border-radius:var(--radius-sm); color:var(--text); font-family:'Inter',sans-serif; font-size:14px; padding:10px 12px; width:100%; outline:none; transition:border-color .2s; }
+    .login-form input:focus { border-color:var(--accent); }
+    .login-form input::placeholder { color:var(--text-muted); }
+    .btn-login { background:var(--accent); color:#fff; border:none; border-radius:var(--radius-sm); padding:12px; font-family:'Inter',sans-serif; font-size:14px; font-weight:600; cursor:pointer; width:100%; transition:background .2s; margin-top:4px; }
+    .btn-login:hover { background:#c73652; }
+    .btn-login:disabled { opacity:.5; cursor:not-allowed; }
+    .login-msg { font-size:13px; text-align:center; margin-top:8px; min-height:18px; }
+    .login-msg.err { color:var(--accent); }
+    .login-msg.ok  { color:var(--accent3); }
+
+    /* ── App (oculto antes do login) ── */
+    .app-wrap { display:none; }
+    .app-wrap.visible { display:block; }
+
+    /* Header */
+    .header { background:linear-gradient(135deg,#1a1a2e 0%,#16213e 60%,#0f3460 100%); padding:20px 24px; border-bottom:1px solid var(--border); position:sticky; top:0; z-index:100; }
+    .header-inner { max-width:700px; margin:0 auto; display:flex; align-items:center; gap:12px; }
+    .header-icon { font-size:28px; line-height:1; }
+    .header-text { flex:1; }
+    .header h1 { font-family:'Space Grotesk',sans-serif; font-size:20px; font-weight:700; color:#fff; }
+    .header-user { font-size:12px; color:var(--text-muted); margin-top:2px; }
+    .btn-logout { background:transparent; border:1px solid var(--border); color:var(--text-muted); font-size:12px; padding:6px 12px; border-radius:var(--radius-sm); cursor:pointer; font-family:'Inter',sans-serif; transition:all .2s; white-space:nowrap; }
+    .btn-logout:hover { border-color:var(--accent); color:var(--accent); }
+
+    /* Tabs */
+    .tabs { max-width:700px; margin:20px auto 0; padding:0 16px; display:flex; gap:8px; }
+    .tab-btn { flex:1; padding:10px 8px; border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--surface); color:var(--text-muted); font-family:'Inter',sans-serif; font-size:13px; font-weight:500; cursor:pointer; transition:all .2s; }
+    .tab-btn.active { background:var(--accent); border-color:var(--accent); color:#fff; }
+
+    /* Content */
+    .content { max-width:700px; margin:20px auto 0; padding:0 16px; }
+    .panel { display:none; }
+    .panel.active { display:block; }
+
+    /* Card */
+    .card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:24px; margin-bottom:16px; }
+    .card-title { font-family:'Space Grotesk',sans-serif; font-size:15px; font-weight:600; color:var(--text); margin-bottom:20px; display:flex; align-items:center; gap:8px; }
+
+    /* Form */
+    .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+    .form-group { display:flex; flex-direction:column; gap:6px; }
+    .form-group.full { grid-column:1/-1; }
+    label { font-size:12px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:.6px; }
+    input[type=text],input[type=number],input[type=date],input[type=url],textarea {
+      background:var(--bg); border:1px solid var(--border); border-radius:var(--radius-sm);
+      color:var(--text); font-family:'Inter',sans-serif; font-size:14px;
+      padding:10px 12px; width:100%; transition:border-color .2s; outline:none;
+    }
+    input:focus, textarea:focus { border-color:var(--accent); }
+    input::placeholder, textarea::placeholder { color:var(--text-muted); }
+    textarea { resize:vertical; min-height:80px; }
+    .input-hint { font-size:11px; color:var(--text-muted); margin-top:2px; }
+
+    .form-divider { grid-column:1/-1; display:flex; align-items:center; gap:10px; margin:4px 0; }
+    .form-divider span { font-size:11px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:.6px; white-space:nowrap; }
+    .form-divider::before, .form-divider::after { content:''; flex:1; height:1px; background:var(--border); }
+
+    /* Upload */
+    .upload-area { grid-column:1/-1; border:2px dashed var(--border); border-radius:var(--radius); padding:20px; text-align:center; cursor:pointer; transition:all .25s; position:relative; }
+    .upload-area:hover,.upload-area.drag { border-color:var(--accent); background:#e9456010; }
+    .upload-area input[type=file] { position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%; }
+    .upload-icon  { font-size:28px; margin-bottom:8px; }
+    .upload-label { font-size:13px; font-weight:600; color:var(--text); }
+    .upload-sub   { font-size:11px; color:var(--text-muted); margin-top:4px; }
+    .upload-preview { grid-column:1/-1; display:none; background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius-sm); padding:12px 14px; align-items:center; gap:12px; }
+    .upload-preview.show { display:flex; }
+    .upload-preview-icon { font-size:24px; flex-shrink:0; }
+    .upload-preview-info { flex:1; min-width:0; }
+    .upload-preview-name { font-size:13px; font-weight:600; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .upload-preview-size { font-size:11px; color:var(--text-muted); margin-top:2px; }
+    .upload-preview-status { font-size:12px; font-weight:600; }
+    .upload-preview-status.uploading { color:var(--accent2); }
+    .upload-preview-status.done      { color:var(--accent3); }
+    .upload-preview-status.error     { color:var(--accent); }
+    .upload-remove { background:none; border:none; color:var(--text-muted); font-size:18px; cursor:pointer; padding:0 4px; flex-shrink:0; }
+    .upload-remove:hover { color:var(--accent); }
+
+    /* Botões */
+    .btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:12px 24px; border-radius:var(--radius-sm); font-family:'Inter',sans-serif; font-size:14px; font-weight:600; cursor:pointer; border:none; transition:all .2s; }
+    .btn-primary { background:var(--accent); color:#fff; width:100%; margin-top:20px; }
+    .btn-primary:hover { background:#c73652; }
+    .btn-primary:disabled { opacity:.5; cursor:not-allowed; }
+    .btn-danger { background:transparent; border:1px solid #ff4444; color:#ff4444; font-size:12px; padding:5px 10px; }
+    .btn-danger:hover { background:#ff444420; }
+
+    /* Toast */
+    .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(80px); background:var(--success); color:#000; padding:12px 24px; border-radius:30px; font-weight:600; font-size:14px; z-index:999; transition:transform .3s ease; white-space:nowrap; }
+    .toast.show  { transform:translateX(-50%) translateY(0); }
+    .toast.error { background:var(--accent); color:#fff; }
+
+    /* Histórico */
+    .stats-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:20px; }
+    .stat-card  { background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius); padding:16px; text-align:center; }
+    .stat-value { font-family:'Space Grotesk',sans-serif; font-size:22px; font-weight:700; color:var(--accent); }
+    .stat-label { font-size:11px; color:var(--text-muted); margin-top:4px; text-transform:uppercase; letter-spacing:.5px; }
+
+    .run-item  { background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius); padding:16px; margin-bottom:12px; display:grid; grid-template-columns:1fr auto; gap:12px; align-items:start; transition:border-color .2s; }
+    .run-item:hover { border-color:var(--accent); }
+    .run-name  { font-family:'Space Grotesk',sans-serif; font-size:15px; font-weight:600; color:var(--text); margin-bottom:6px; }
+    .run-meta  { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+    .run-extra { display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; }
+    .run-badge { background:var(--surface); border:1px solid var(--border); border-radius:20px; font-size:12px; padding:3px 10px; color:var(--text-muted); display:flex; align-items:center; gap:4px; }
+    .run-badge.highlight  { border-color:var(--accent);  color:var(--accent); }
+    .run-badge.link-badge { border-color:var(--accent4); color:var(--accent4); text-decoration:none; }
+    .run-badge.link-badge:hover { background:#60a5fa18; }
+    .run-badge.cert-badge { border-color:var(--accent3); color:var(--accent3); text-decoration:none; }
+    .run-badge.cert-badge:hover { background:#4ade8018; }
+    .run-obs   { font-size:12px; color:var(--text-muted); margin-top:8px; font-style:italic; }
+
+    .empty { text-align:center; padding:48px 16px; color:var(--text-muted); }
+    .empty-icon { font-size:40px; margin-bottom:12px; }
+    .empty p { font-size:14px; }
+    .loading { text-align:center; padding:40px; color:var(--text-muted); font-size:14px; }
+
+    /* Painel */
+    .kpi-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:16px; }
+    .kpi-card { background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius); padding:18px 14px; text-align:center; position:relative; overflow:hidden; }
+    .kpi-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; }
+    .kpi-card.red::before   { background:var(--accent); }
+    .kpi-card.gold::before  { background:var(--accent2); }
+    .kpi-card.green::before { background:var(--accent3); }
+    .kpi-card.blue::before  { background:var(--accent4); }
+    .kpi-icon  { font-size:22px; margin-bottom:6px; }
+    .kpi-value { font-family:'Space Grotesk',sans-serif; font-size:20px; font-weight:700; color:var(--text); line-height:1.1; }
+    .kpi-label { font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:.5px; margin-top:4px; }
+
+    .chart-section  { margin-bottom:16px; }
+    .chart-svg-wrap { background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius); padding:16px; overflow:hidden; }
+    .chart-svg-wrap svg { display:block; width:100%; overflow:visible; }
+
+    .pace-bar-wrap  { margin-bottom:10px; }
+    .pace-bar-label { display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px; }
+    .pace-bar-name  { color:var(--text); font-weight:500; max-width:55%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .pace-bar-val   { color:var(--text-muted); font-variant-numeric:tabular-nums; }
+    .pace-bar-track { background:var(--border); border-radius:4px; height:8px; overflow:hidden; }
+    .pace-bar-fill  { height:100%; border-radius:4px; background:linear-gradient(90deg,var(--accent),var(--accent2)); transition:width .6s ease; }
+
+    .top-item { display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid var(--border); }
+    .top-item:last-child { border-bottom:none; }
+    .top-rank  { font-family:'Space Grotesk',sans-serif; font-size:18px; font-weight:700; width:28px; text-align:center; }
+    .top-rank.gold   { color:#f5a623; }
+    .top-rank.silver { color:#aaa; }
+    .top-rank.bronze { color:#cd7f32; }
+    .top-rank.other  { color:var(--text-muted); font-size:14px; }
+    .top-info { flex:1; }
+    .top-name { font-size:14px; font-weight:600; color:var(--text); }
+    .top-sub  { font-size:12px; color:var(--text-muted); margin-top:2px; }
+    .top-pace { font-family:'Space Grotesk',sans-serif; font-size:14px; font-weight:700; color:var(--accent); }
+
+    .dist-bar   { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+    .dist-label { font-size:12px; color:var(--text-muted); width:80px; flex-shrink:0; }
+    .dist-track { flex:1; background:var(--border); border-radius:4px; height:10px; overflow:hidden; }
+    .dist-fill  { height:100%; border-radius:4px; background:var(--accent4); transition:width .6s ease; }
+    .dist-count { font-size:12px; color:var(--text); width:30px; text-align:right; flex-shrink:0; }
+
+    @media (max-width:480px) {
+      .form-grid { grid-template-columns:1fr; }
+      .stats-grid,.kpi-grid { grid-template-columns:1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ══════════════════════════════════
+       TELA DE LOGIN / CADASTRO
+  ══════════════════════════════════ -->
+  <div class="login-wrap" id="login-wrap">
+    <div class="login-box">
+      <div class="login-logo">🏃</div>
+      <div class="login-title">Registro de Corridas</div>
+      <div class="login-sub">Entre ou crie sua conta para começar</div>
+
+      <div class="login-tabs">
+        <button class="login-tab active" onclick="switchLoginTab('entrar')">Entrar</button>
+        <button class="login-tab"       onclick="switchLoginTab('cadastrar')">Criar conta</button>
+      </div>
+
+      <div class="login-form">
+        <div>
+          <label>E-mail</label>
+          <input type="text" id="auth-email" placeholder="seu@email.com" />
+        </div>
+        <div>
+          <label>Senha</label>
+          <input type="password" id="auth-senha" placeholder="••••••••" />
+        </div>
+        <button class="btn-login" id="btn-auth" onclick="autenticar()">Entrar</button>
+        <div class="login-msg" id="login-msg"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════
+       APP PRINCIPAL
+  ══════════════════════════════════ -->
+  <div class="app-wrap" id="app-wrap">
+
+    <div class="header">
+      <div class="header-inner">
+        <div class="header-icon">🏃</div>
+        <div class="header-text">
+          <h1>Registro de Corridas</h1>
+          <div class="header-user" id="header-user">—</div>
+        </div>
+        <button class="btn-logout" onclick="sair()">Sair</button>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('novo')">＋ Nova</button>
+      <button class="tab-btn" onclick="switchTab('historico')">📋 Histórico</button>
+      <button class="tab-btn" onclick="switchTab('painel')">📊 Painel</button>
+    </div>
+
+    <div class="content">
+
+      <!-- ══ NOVA CORRIDA ══ -->
+      <div id="panel-novo" class="panel active">
+        <div class="card">
+          <div class="card-title">🗓️ Dados da Corrida</div>
+          <div class="form-grid">
+
+            <div class="form-group full">
+              <label>Nome / Evento</label>
+              <input type="text" id="nome" placeholder="Ex: Corrida de São Silvestre, Treino de terça…" />
+            </div>
+            <div class="form-group">
+              <label>Data da Corrida</label>
+              <input type="date" id="data" />
+            </div>
+            <div class="form-group">
+              <label>Nº de Inscrição</label>
+              <input type="text" id="inscricao" placeholder="Ex: 12345" />
+            </div>
+            <div class="form-group">
+              <label>Distância (km)</label>
+              <input type="number" id="km" placeholder="Ex: 10.5" step="0.01" min="0" />
+            </div>
+            <div class="form-group">
+              <label>Tempo Total</label>
+              <input type="text" id="tempo" placeholder="hh:mm:ss ou mm:ss" maxlength="8" />
+              <span class="input-hint">Formato: 01:02:30 ou 55:00</span>
+            </div>
+
+            <div class="form-divider"><span>🔗 Resultado &amp; Certificado</span></div>
+
+            <div class="form-group full">
+              <label>Link do Resultado</label>
+              <input type="url" id="linkResultado" placeholder="https://resultados.corrida.com.br/…" />
+              <span class="input-hint">URL da página com seu resultado oficial</span>
+            </div>
+
+            <div class="upload-area" id="upload-area" ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="dropFile(event)">
+              <input type="file" id="certificado-file" accept=".pdf,.jpg,.jpeg,.png" onchange="fileSelected(event)" />
+              <div class="upload-icon">📄</div>
+              <div class="upload-label">Clique ou arraste o certificado aqui</div>
+              <div class="upload-sub">PDF, JPG ou PNG · máx. 10 MB</div>
+            </div>
+
+            <div class="upload-preview" id="upload-preview">
+              <div class="upload-preview-icon" id="preview-icon">📄</div>
+              <div class="upload-preview-info">
+                <div class="upload-preview-name" id="preview-name">—</div>
+                <div class="upload-preview-size" id="preview-size">—</div>
+              </div>
+              <div class="upload-preview-status" id="preview-status"></div>
+              <button class="upload-remove" onclick="removerArquivo()" title="Remover">✕</button>
+            </div>
+
+            <div class="form-divider"><span>💬 Observações</span></div>
+
+            <div class="form-group full">
+              <label>Observações</label>
+              <textarea id="observacoes" placeholder="Como foi? Clima, sensação, ritmo… (opcional)"></textarea>
+            </div>
+
+          </div>
+          <button class="btn btn-primary" id="btn-salvar" onclick="salvarCorrida()">Salvar Corrida</button>
+        </div>
+      </div>
+
+      <!-- ══ HISTÓRICO ══ -->
+      <div id="panel-historico" class="panel">
+        <div class="stats-grid">
+          <div class="stat-card"><div class="stat-value" id="stat-total">–</div><div class="stat-label">Corridas</div></div>
+          <div class="stat-card"><div class="stat-value" id="stat-km">–</div><div class="stat-label">KM Total</div></div>
+          <div class="stat-card"><div class="stat-value" id="stat-melhor">–</div><div class="stat-label">Melhor Pace</div></div>
+        </div>
+        <div id="lista-corridas"><div class="loading">Carregando corridas…</div></div>
+      </div>
+
+      <!-- ══ PAINEL ══ -->
+      <div id="panel-painel" class="panel">
+        <div class="kpi-grid" id="kpi-grid"><div class="loading" style="grid-column:1/-1">Carregando painel…</div></div>
+        <div class="card chart-section">
+          <div class="card-title">📈 Distância por Corrida</div>
+          <div class="chart-svg-wrap" id="chart-km-wrap"><div class="loading">Aguardando dados…</div></div>
+        </div>
+        <div class="card chart-section">
+          <div class="card-title">🏆 Top 5 — Melhor Pace</div>
+          <div id="top-paces"><div class="loading">Aguardando dados…</div></div>
+        </div>
+        <div class="card chart-section">
+          <div class="card-title">🚀 Pace por Corrida (últimas 10)</div>
+          <div id="pace-bars"><div class="loading">Aguardando dados…</div></div>
+        </div>
+        <div class="card chart-section">
+          <div class="card-title">📏 Distribuição por Distância</div>
+          <div id="dist-chart"><div class="loading">Aguardando dados…</div></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <!-- ② app.js DEVE vir depois do SDK acima -->
+  <script src="app.js"></script>
+
+  <script>
+    /* ═══════════════════════════════════
+       ESTADO GLOBAL
+    ════════════════════════════════════ */
+    var usuarioAtual = null;
+    var certState    = { file: null, link: '', uploading: false };
+    var modoAuth     = 'entrar'; // 'entrar' | 'cadastrar'
+
+    /* ═══════════════════════════════════
+       AUTH – Login / Cadastro / Logout
+    ════════════════════════════════════ */
+    function switchLoginTab(modo) {
+      modoAuth = modo;
+      document.querySelectorAll('.login-tab').forEach(function(b, i) {
+        b.classList.toggle('active', (i===0 && modo==='entrar') || (i===1 && modo==='cadastrar'));
+      });
+      document.getElementById('btn-auth').textContent = modo === 'entrar' ? 'Entrar' : 'Criar conta';
+      document.getElementById('login-msg').textContent = '';
+    }
+
+    function setLoginMsg(txt, tipo) {
+      var el = document.getElementById('login-msg');
+      el.textContent = txt;
+      el.className   = 'login-msg ' + (tipo || '');
+    }
+
+    async function autenticar() {
+      var email = document.getElementById('auth-email').value.trim();
+      var senha = document.getElementById('auth-senha').value;
+      if (!email || !senha) { setLoginMsg('Preencha e-mail e senha.', 'err'); return; }
+
+      var btn = document.getElementById('btn-auth');
+      btn.disabled = true;
+      btn.textContent = 'Aguarde…';
+
+      try {
+        var result;
+        if (modoAuth === 'entrar') {
+          result = await db.auth.signInWithPassword({ email: email, password: senha });
+        } else {
+          result = await db.auth.signUp({ email: email, password: senha });
+        }
+
+        if (result.error) {
+          setLoginMsg(traduzirErroAuth(result.error.message), 'err');
+        } else if (modoAuth === 'cadastrar' && !result.data.session) {
+          setLoginMsg('✅ Conta criada! Confirme seu e-mail para entrar.', 'ok');
+        } else {
+          // login bem-sucedido → onAuthStateChange cuida do resto
+        }
+      } catch(e) {
+        setLoginMsg('Erro inesperado. Tente novamente.', 'err');
+      }
+
+      btn.disabled = false;
+      btn.textContent = modoAuth === 'entrar' ? 'Entrar' : 'Criar conta';
+    }
+
+    function traduzirErroAuth(msg) {
+      if (msg.includes('Invalid login'))      return '❌ E-mail ou senha incorretos.';
+      if (msg.includes('Email not confirmed')) return '⚠️ Confirme seu e-mail antes de entrar.';
+      if (msg.includes('already registered')) return '⚠️ Este e-mail já está cadastrado.';
+      if (msg.includes('Password'))           return '⚠️ A senha deve ter pelo menos 6 caracteres.';
+      return '❌ ' + msg;
+    }
+
+    async function sair() {
+      await db.auth.signOut();
+    }
+
+    // Escuta mudanças de sessão (login / logout automático)
+    db.auth.onAuthStateChange(function(event, session) {
+      if (session && session.user) {
+        usuarioAtual = session.user;
+        document.getElementById('header-user').textContent = session.user.email;
+        document.getElementById('login-wrap').style.display = 'none';
+        document.getElementById('app-wrap').classList.add('visible');
+        // Limpa campos de login por segurança
+        document.getElementById('auth-email').value = '';
+        document.getElementById('auth-senha').value = '';
+        document.getElementById('login-msg').textContent = '';
+      } else {
+        usuarioAtual = null;
+        document.getElementById('login-wrap').style.display = 'flex';
+        document.getElementById('app-wrap').classList.remove('visible');
+      }
+    });
+
+    // Enter no campo de senha dispara login
+    document.addEventListener('DOMContentLoaded', function() {
+      document.getElementById('auth-senha').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') autenticar();
+      });
+      document.getElementById('data').value = new Date().toISOString().slice(0,10);
+    });
+
+    /* ═══════════════════════════════════
+       TABS
+    ════════════════════════════════════ */
+    function switchTab(tab) {
+      var tabs = ['novo','historico','painel'];
+      document.querySelectorAll('.tab-btn').forEach(function(b,i){ b.classList.toggle('active', tabs[i]===tab); });
+      document.querySelectorAll('.panel').forEach(function(p){ p.classList.remove('active'); });
+      document.getElementById('panel-'+tab).classList.add('active');
+      if (tab==='historico') carregarHistorico();
+      if (tab==='painel')    carregarPainel();
+    }
+
+    /* ═══════════════════════════════════
+       TOAST
+    ════════════════════════════════════ */
+    function showToast(msg, erro) {
+      var t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className   = 'toast'+(erro?' error':'')+' show';
+      setTimeout(function(){ t.classList.remove('show'); }, 3500);
+    }
+
+    /* ═══════════════════════════════════
+       UPLOAD
+    ════════════════════════════════════ */
+    function dragOver(e)  { e.preventDefault(); document.getElementById('upload-area').classList.add('drag'); }
+    function dragLeave()  { document.getElementById('upload-area').classList.remove('drag'); }
+    function dropFile(e)  { e.preventDefault(); dragLeave(); var f=e.dataTransfer.files[0]; if(f) processFile(f); }
+    function fileSelected(e) { var f=e.target.files[0]; if(f) processFile(f); }
+
+    function processFile(file) {
+      if (file.size > 10*1024*1024) { showToast('⚠️ Arquivo maior que 10 MB.', true); return; }
+      if (!['application/pdf','image/jpeg','image/jpg','image/png'].includes(file.type)) {
+        showToast('⚠️ Formato inválido. Use PDF, JPG ou PNG.', true); return;
+      }
+      certState.file = file; certState.link = '';
+      document.getElementById('preview-icon').textContent = file.type==='application/pdf'?'📋':'🖼️';
+      document.getElementById('preview-name').textContent = file.name;
+      document.getElementById('preview-size').textContent = formatBytes(file.size);
+      document.getElementById('preview-status').textContent = 'Aguardando envio…';
+      document.getElementById('preview-status').className  = 'upload-preview-status';
+      document.getElementById('upload-preview').classList.add('show');
+    }
+
+    function removerArquivo() {
+      certState = { file: null, link: '', uploading: false };
+      document.getElementById('certificado-file').value = '';
+      document.getElementById('upload-preview').classList.remove('show');
+    }
+
+    function setStatus(txt, cls) {
+      var el = document.getElementById('preview-status');
+      el.textContent = txt;
+      el.className   = 'upload-preview-status '+cls;
+    }
+
+    async function fazerUpload() {
+      if (!certState.file) return '';
+      if (certState.link)  return certState.link;
+      setStatus('Enviando…','uploading');
+      try {
+        // Chama a função do app.js (Supabase Storage)
+        var url = await uploadCertificadoSupabase(certState.file);
+        certState.link = url;
+        setStatus('✓ Enviado!','done');
+        return url;
+      } catch(e) {
+        setStatus('Erro no upload','error');
+        throw e;
+      }
+    }
+
+    /* ═══════════════════════════════════
+       SALVAR CORRIDA  ← Supabase
+    ════════════════════════════════════ */
+    async function salvarCorrida() {
+      if (!usuarioAtual) { showToast('⚠️ Sessão expirada. Faça login novamente.', true); return; }
+
+      var nome    = document.getElementById('nome').value.trim();
+      var data    = document.getElementById('data').value;
+      var km      = document.getElementById('km').value;
+      var tempo   = document.getElementById('tempo').value.trim();
+      var obs     = document.getElementById('observacoes').value.trim();
+      var insc    = document.getElementById('inscricao').value.trim();
+      var linkRes = document.getElementById('linkResultado').value.trim();
+
+      if (!nome||!data||!km||!tempo) { showToast('⚠️ Preencha nome, data, KM e tempo.', true); return; }
+      if (!validarTempo(tempo))      { showToast('⚠️ Tempo inválido. Use hh:mm:ss ou mm:ss.', true); return; }
+
+      var btn = document.getElementById('btn-salvar');
+      btn.disabled = true; btn.textContent = 'Salvando…';
+
+      try {
+        var certUrl = await fazerUpload();
+
+        // payload em snake_case — igual ao banco Supabase
+        await salvarCorridaSupabase({
+          user_email:      usuarioAtual.email,
+          nome:            nome,
+          data:            data,
+          km:              parseFloat(km),
+          tempo:           tempo,
+          pace:            calcularPace(km, tempo),
+          inscricao:       insc,
+          link_resultado:  linkRes,
+          certificado_url: certUrl,
+          observacoes:     obs
+        });
+
+        showToast('✅ Corrida salva com sucesso!');
+        limparForm();
+      } catch(e) {
+        showToast('❌ Erro ao salvar: ' + (e.message||e), true);
+      }
+
+      btn.disabled = false; btn.textContent = 'Salvar Corrida';
+    }
+
+    function validarTempo(t) { return /^\d{1,2}:\d{2}(:\d{2})?$/.test(t); }
+
+    function calcularPace(km, tempo) {
+      try {
+        var p=String(tempo).split(':'), h=0,m=0,s=0;
+        if(p.length===3){h=+p[0];m=+p[1];s=+p[2];}
+        else if(p.length===2){m=+p[0];s=+p[1];}
+        var tot=(h*3600+m*60+s)/parseFloat(km);
+        return Math.floor(tot/60)+':'+(Math.round(tot%60)+'').padStart(2,'0')+' min/km';
+      } catch(e){ return '-'; }
+    }
+
+    function limparForm() {
+      ['nome','data','km','tempo','inscricao','linkResultado','observacoes'].forEach(function(id){ document.getElementById(id).value=''; });
+      removerArquivo();
+      document.getElementById('data').value = new Date().toISOString().slice(0,10);
+    }
+
+    /* ═══════════════════════════════════
+       HISTÓRICO  ← Supabase
+    ════════════════════════════════════ */
+    async function carregarHistorico() {
+      document.getElementById('lista-corridas').innerHTML = '<div class="loading">Carregando corridas…</div>';
+      try {
+        var dados = await buscarCorridas(); // app.js → já mapeado
+        renderHistorico(dados);
+      } catch(e) {
+        document.getElementById('lista-corridas').innerHTML = '<div class="loading">❌ Erro ao carregar dados.</div>';
+      }
+    }
+
+    function renderHistorico(dados) {
+      var totalKm = dados.reduce(function(a,d){ return a+(parseFloat(d.KM)||0); },0);
+      document.getElementById('stat-total').textContent = dados.length;
+      document.getElementById('stat-km').textContent    = totalKm.toFixed(1);
+      var paces = dados.map(function(d){ return parsePace(d['Pace (min/km)']); }).filter(function(v){ return !isNaN(v); });
+      document.getElementById('stat-melhor').textContent = paces.length ? formatPace(Math.min.apply(null,paces)) : '–';
+
+      var lista = document.getElementById('lista-corridas');
+      if (!dados.length) {
+        lista.innerHTML = '<div class="empty"><div class="empty-icon">🏁</div><p>Nenhuma corrida registrada ainda.</p></div>';
+        return;
+      }
+      lista.innerHTML = dados.map(function(d) {
+        var obs    = d['Observações'] ? '<div class="run-obs">💬 '+escHtml(d['Observações'])+'</div>' : '';
+        var extras = '';
+        if (d['Nº Inscrição'] && String(d['Nº Inscrição']).trim())
+          extras += '<span class="run-badge">🎫 #'+escHtml(String(d['Nº Inscrição']))+'</span>';
+        if (d['Link Resultado'] && String(d['Link Resultado']).startsWith('http'))
+          extras += '<a class="run-badge link-badge" href="'+escHtml(d['Link Resultado'])+'" target="_blank" rel="noopener">🔗 Resultado</a>';
+        if (d['Certificado'] && String(d['Certificado']).startsWith('http'))
+          extras += '<a class="run-badge cert-badge" href="'+escHtml(d['Certificado'])+'" target="_blank" rel="noopener">📋 Certificado</a>';
+
+        return '<div class="run-item"><div>'+
+          '<div class="run-name">'+escHtml(d.Nome)+'</div>'+
+          '<div class="run-meta">'+
+            '<span class="run-badge">📅 '+formatarData(d.Data)+'</span>'+
+            '<span class="run-badge highlight">📍 '+(d.KM||'–')+' km</span>'+
+            '<span class="run-badge">⏱️ '+(d.Tempo||'–')+'</span>'+
+            '<span class="run-badge">🚀 '+(d['Pace (min/km)']||'–')+'</span>'+
+          '</div>'+
+          (extras?'<div class="run-extra">'+extras+'</div>':'')+
+          obs+
+        '</div>'+
+        '<button class="btn btn-danger" onclick="excluir(\''+d.id+'\')">✕</button>'+
+        '</div>';
+      }).join('');
+    }
+
+    async function excluir(id) {
+      if (!confirm('Remover este registro?')) return;
+      try {
+        await excluirCorridaSupabase(id);
+        showToast('🗑️ Excluído.');
+        carregarHistorico();
+      } catch(e) {
+        showToast('❌ Erro ao excluir.', true);
+      }
+    }
+
+    /* ═══════════════════════════════════
+       PAINEL  ← Supabase
+    ════════════════════════════════════ */
+    async function carregarPainel() {
+      document.getElementById('kpi-grid').innerHTML = '<div class="loading" style="grid-column:1/-1">Carregando painel…</div>';
+      try {
+        var dados = await buscarCorridas();
+        renderPainel(dados);
+      } catch(e) {
+        document.getElementById('kpi-grid').innerHTML = '<div class="loading" style="grid-column:1/-1">❌ Erro.</div>';
+      }
+    }
+
+    function renderPainel(dados) {
+      if (!dados.length) {
+        document.getElementById('kpi-grid').innerHTML = '<div class="empty" style="grid-column:1/-1"><div class="empty-icon">📊</div><p>Nenhuma corrida ainda.</p></div>';
+        return;
+      }
+      var cronologico = dados.slice().reverse();
+      var totalKm  = dados.reduce(function(a,d){ return a+(parseFloat(d.KM)||0); },0);
+      var pacesSeg = dados.map(function(d){ return parsePace(d['Pace (min/km)']); }).filter(function(v){ return !isNaN(v); });
+      var melhor   = pacesSeg.length ? Math.min.apply(null,pacesSeg) : null;
+      var mediP    = pacesSeg.length ? pacesSeg.reduce(function(a,b){ return a+b; },0)/pacesSeg.length : null;
+      var maiorKm  = Math.max.apply(null,dados.map(function(d){ return parseFloat(d.KM)||0; }));
+      var comCert  = dados.filter(function(d){ return d['Certificado']&&String(d['Certificado']).startsWith('http'); }).length;
+
+      document.getElementById('kpi-grid').innerHTML =
+        kpiCard('🏅',dados.length,'Corridas','red')+
+        kpiCard('📍',totalKm.toFixed(1)+' km','KM Total','gold')+
+        kpiCard('⚡',melhor!==null?formatPace(Math.round(melhor)):'–','Melhor Pace','green')+
+        kpiCard('📊',mediP!==null?formatPace(Math.round(mediP)):'–','Pace Médio','blue')+
+        kpiCard('📏',(totalKm/dados.length).toFixed(1)+' km','Média/Corrida','gold')+
+        kpiCard('📋',comCert,'Com Certificado','green');
+
+      renderChartKm(cronologico);
+      renderTopPaces(dados);
+      renderPaceBars(dados.slice(0,10));
+      renderDistribuicao(dados);
+    }
+
+    function kpiCard(icon,value,label,color){
+      return '<div class="kpi-card '+color+'"><div class="kpi-icon">'+icon+'</div><div class="kpi-value">'+value+'</div><div class="kpi-label">'+label+'</div></div>';
+    }
+
+    function renderChartKm(dados) {
+      var wrap=document.getElementById('chart-km-wrap');
+      if(!dados.length){wrap.innerHTML='<div class="empty"><p>Sem dados</p></div>';return;}
+      var W=620,H=160,PL=36,PR=12,PT=14,PB=28,cW=W-PL-PR,cH=H-PT-PB;
+      var kms=dados.map(function(d){return parseFloat(d.KM)||0;});
+      var maxKm=Math.max.apply(null,kms)||1,n=kms.length;
+      function xPos(i){return PL+(n<2?cW/2:(i/(n-1))*cW);}
+      function yPos(v){return PT+cH-(v/maxKm)*cH;}
+      var pts=kms.map(function(v,i){return xPos(i)+','+yPos(v);}).join(' ');
+      var area='M'+xPos(0)+','+(PT+cH)+' L'+kms.map(function(v,i){return xPos(i)+','+yPos(v);}).join(' L')+' L'+xPos(n-1)+','+(PT+cH)+' Z';
+      var grades='';
+      [0.25,0.5,0.75,1].forEach(function(f){
+        var y=PT+cH-f*cH;
+        grades+='<line x1="'+PL+'" y1="'+y+'" x2="'+(W-PR)+'" y2="'+y+'" stroke="#2a2a45" stroke-width="1"/>';
+        grades+='<text x="'+(PL-4)+'" y="'+(y+4)+'" text-anchor="end" font-size="9" fill="#8888aa">'+(f*maxKm).toFixed(1)+'</text>';
+      });
+      var step=Math.max(1,Math.ceil(n/6)),xlabels='';
+      for(var i=0;i<n;i+=step){
+        var nm=dados[i].Nome||'';var sh=nm.length>8?nm.substr(0,7)+'…':nm;
+        xlabels+='<text x="'+xPos(i)+'" y="'+(H-4)+'" text-anchor="middle" font-size="9" fill="#8888aa">'+escHtml(sh)+'</text>';
+      }
+      var dots=kms.map(function(v,i){return '<circle cx="'+xPos(i)+'" cy="'+yPos(v)+'" r="3.5" fill="#e94560" stroke="#0f0f1a" stroke-width="1.5"><title>'+escHtml(dados[i].Nome||'')+': '+v+' km</title></circle>';}).join('');
+      wrap.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="ag" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#e94560" stop-opacity="0.25"/><stop offset="100%" stop-color="#e94560" stop-opacity="0"/></linearGradient></defs>'+grades+'<path d="'+area+'" fill="url(#ag)"/><polyline points="'+pts+'" fill="none" stroke="#e94560" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>'+dots+xlabels+'</svg>';
+    }
+
+    function renderTopPaces(dados){
+      var com=dados.map(function(d){return{nome:d.Nome,pace:parsePace(d['Pace (min/km)']),paceStr:d['Pace (min/km)'],km:d.KM,data:formatarData(d.Data)};}).filter(function(d){return !isNaN(d.pace);}).sort(function(a,b){return a.pace-b.pace;}).slice(0,5);
+      if(!com.length){document.getElementById('top-paces').innerHTML='<div class="empty"><p>Sem dados</p></div>';return;}
+      var medals=['gold','silver','bronze','other','other'],nums=['🥇','🥈','🥉','4','5'];
+      document.getElementById('top-paces').innerHTML=com.map(function(d,i){return '<div class="top-item"><div class="top-rank '+medals[i]+'">'+nums[i]+'</div><div class="top-info"><div class="top-name">'+escHtml(d.nome||'–')+'</div><div class="top-sub">'+d.data+' · '+(d.km||'–')+' km</div></div><div class="top-pace">'+(d.paceStr||'–')+'</div></div>';}).join('');
+    }
+
+    function renderPaceBars(dados){
+      var com=dados.filter(function(d){return !isNaN(parsePace(d['Pace (min/km)']));});
+      if(!com.length){document.getElementById('pace-bars').innerHTML='<div class="empty"><p>Sem dados</p></div>';return;}
+      var paces=com.map(function(d){return parsePace(d['Pace (min/km)']);});
+      var maxP=Math.max.apply(null,paces)||1;
+      document.getElementById('pace-bars').innerHTML=com.map(function(d,i){var pct=(paces[i]/maxP*100).toFixed(1);return '<div class="pace-bar-wrap"><div class="pace-bar-label"><span class="pace-bar-name">'+escHtml(d.Nome||'–')+'</span><span class="pace-bar-val">'+(d['Pace (min/km)']||'–')+'</span></div><div class="pace-bar-track"><div class="pace-bar-fill" style="width:'+pct+'%"></div></div></div>';}).join('');
+    }
+
+    function renderDistribuicao(dados){
+      var faixas=[{l:'Até 5 km',mn:0,mx:5},{l:'5 – 10 km',mn:5,mx:10},{l:'10 – 21 km',mn:10,mx:21},{l:'21 – 42 km',mn:21,mx:42},{l:'42 km +',mn:42,mx:Infinity}];
+      var cnts=faixas.map(function(f){return dados.filter(function(d){var v=parseFloat(d.KM)||0;return v>=f.mn&&v<f.mx;}).length;});
+      var maxC=Math.max.apply(null,cnts)||1;
+      document.getElementById('dist-chart').innerHTML=faixas.map(function(f,i){return '<div class="dist-bar"><div class="dist-label">'+f.l+'</div><div class="dist-track"><div class="dist-fill" style="width:'+(cnts[i]/maxC*100).toFixed(1)+'%"></div></div><div class="dist-count">'+cnts[i]+'</div></div>';}).join('');
+    }
+
+    /* ═══════════════════════════════════
+       UTILS
+    ════════════════════════════════════ */
+    function parsePace(p){var m=String(p||'').match(/^(\d+):(\d+)/);return m?+m[1]*60+ +m[2]:NaN;}
+    function formatPace(s){return Math.floor(s/60)+':'+(s%60+'').padStart(2,'0')+' /km';}
+    function formatarData(d){if(!d)return '–';var s=String(d);if(/^\d{4}-\d{2}-\d{2}/.test(s)){var p=s.substr(0,10).split('-');return p[2]+'/'+p[1]+'/'+p[0];}return s;}
+    function formatBytes(b){if(b<1024)return b+'B';if(b<1048576)return (b/1024).toFixed(1)+' KB';return (b/1048576).toFixed(1)+' MB';}
+    function escHtml(t){return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+  </script>
+</body>
+</html>
