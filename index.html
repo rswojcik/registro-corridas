@@ -349,6 +349,7 @@
   <div class="toast" id="toast"></div>
 
   <!-- ② app.js DEVE vir depois do SDK acima -->
+  <script src="pace-utils.js"></script>
   <script src="app.js"></script>
 
   <script>
@@ -534,8 +535,11 @@
       var linkRes = document.getElementById('linkResultado').value.trim();
 
       if (!nome||!data||!km||!tempo) { showToast('⚠️ Preencha nome, data, KM e tempo.', true); return; }
-      if (!validarTempo(tempo))      { showToast('⚠️ Tempo inválido. Use hh:mm:ss ou mm:ss.', true); return; }
+      // ✅ Validação melhorada com a nova funçãoif (!validarTempo(tempo))      { showToast('⚠️ Tempo inválido. Use hh:mm:ss ou mm:ss.', true); return; }
 
+      var validacao = validarKMeTempo(km, tempo);
+      if (!validacao.valido) { showToast(validacao.erro, true); return; }
+      
       var btn = document.getElementById('btn-salvar');
       btn.disabled = true; btn.textContent = 'Salvando…';
 
@@ -567,15 +571,7 @@
 
     function validarTempo(t) { return /^\d{1,2}:\d{2}(:\d{2})?$/.test(t); }
 
-    function calcularPace(km, tempo) {
-      try {
-        var p=String(tempo).split(':'), h=0,m=0,s=0;
-        if(p.length===3){h=+p[0];m=+p[1];s=+p[2];}
-        else if(p.length===2){m=+p[0];s=+p[1];}
-        var tot=(h*3600+m*60+s)/parseFloat(km);
-        return Math.floor(tot/60)+':'+(Math.round(tot%60)+'').padStart(2,'0')+' min/km';
-      } catch(e){ return '-'; }
-    }
+    // ✅ calcularPace() → removida (agora em pace-utils.js com validações melhores)
 
     function limparForm() {
       ['nome','data','km','tempo','inscricao','linkResultado','observacoes'].forEach(function(id){ document.getElementById(id).value=''; });
@@ -665,9 +661,12 @@
       }
       var cronologico = dados.slice().reverse();
       var totalKm  = dados.reduce(function(a,d){ return a+(parseFloat(d.KM)||0); },0);
-      var pacesSeg = dados.map(function(d){ return parsePace(d['Pace (min/km)']); }).filter(function(v){ return !isNaN(v); });
-      var melhor   = pacesSeg.length ? Math.min.apply(null,pacesSeg) : null;
-      var mediP    = pacesSeg.length ? pacesSeg.reduce(function(a,b){ return a+b; },0)/pacesSeg.length : null;
+      //var pacesSeg = dados.map(function(d){ return parsePace(d['Pace (min/km)']); }).filter(function(v){ return !isNaN(v); });
+      //var melhor   = pacesSeg.length ? Math.min.apply(null,pacesSeg) : null;
+      var estatisticas = obterEstatisticasPace(dados);
+      var melhor   = estatisticas.melhor;
+      var mediP    = estatisticas.media;  // ou use .mediano para versão mais robusta
+      //var mediP    = pacesSeg.length ? pacesSeg.reduce(function(a,b){ return a+b; },0)/pacesSeg.length : null;
       var maiorKm  = Math.max.apply(null,dados.map(function(d){ return parseFloat(d.KM)||0; }));
       var comCert  = dados.filter(function(d){ return d['Certificado']&&String(d['Certificado']).startsWith('http'); }).length;
 
@@ -739,8 +738,8 @@
     /* ═══════════════════════════════════
        UTILS
     ════════════════════════════════════ */
-    function parsePace(p){var m=String(p||'').match(/^(\d+):(\d+)/);return m?+m[1]*60+ +m[2]:NaN;}
-    function formatPace(s){return Math.floor(s/60)+':'+(s%60+'').padStart(2,'0')+' /km';}
+    //✅ parsePace() → removida (agora em pace-utils.js) function parsePace(p){var m=String(p||'').match(/^(\d+):(\d+)/);return m?+m[1]*60+ +m[2]:NaN;}
+    //✅ formatPace() → removida (agora em pace-utils.js) function formatPace(s){return Math.floor(s/60)+':'+(s%60+'').padStart(2,'0')+' /km';}
     function formatarData(d){if(!d)return '–';var s=String(d);if(/^\d{4}-\d{2}-\d{2}/.test(s)){var p=s.substr(0,10).split('-');return p[2]+'/'+p[1]+'/'+p[0];}return s;}
     function formatBytes(b){if(b<1024)return b+'B';if(b<1048576)return (b/1024).toFixed(1)+' KB';return (b/1048576).toFixed(1)+' MB';}
     function escHtml(t){return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
