@@ -27,14 +27,14 @@
     .login-title{ font-family:'Space Grotesk',sans-serif; font-size:22px; font-weight:700; text-align:center; color:#fff; margin-bottom:4px; }
     .login-sub  { font-size:13px; color:var(--text-muted); text-align:center; margin-bottom:28px; }
     .login-tabs { display:flex; gap:8px; margin-bottom:24px; }
-    .login-tab  { flex:1; padding:8px; border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--surface2); color:var(--text-muted); font-family:'Inter',sans-serif; font-size:13px; font-weight:500; cursor:pointer; transition:all .2s; }
+    .login-tab  { flex:1; padding:8px; border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--surface2); color:var(--text-muted); font-family:'Inter',sans-serif; font-siz[...]
     .login-tab.active { background:var(--accent); border-color:var(--accent); color:#fff; }
     .login-form { display:flex; flex-direction:column; gap:14px; }
     .login-form label { font-size:11px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:.6px; display:block; margin-bottom:4px; }
-    .login-form input { background:var(--bg); border:1px solid var(--border); border-radius:var(--radius-sm); color:var(--text); font-family:'Inter',sans-serif; font-size:14px; padding:10px 12px; width:100%; outline:none; transition:border-color .2s; }
+    .login-form input { background:var(--bg); border:1px solid var(--border); border-radius:var(--radius-sm); color:var(--text); font-family:'Inter',sans-serif; font-size:14px; padding:10px 12px; [...]
     .login-form input:focus { border-color:var(--accent); }
     .login-form input::placeholder { color:var(--text-muted); }
-    .btn-login { background:var(--accent); color:#fff; border:none; border-radius:var(--radius-sm); padding:12px; font-family:'Inter',sans-serif; font-size:14px; font-weight:600; cursor:pointer; width:100%; transition:background .2s; margin-top:4px; }
+    .btn-login { background:var(--accent); color:#fff; border:none; border-radius:var(--radius-sm); padding:12px; font-family:'Inter',sans-serif; font-size:14px; font-weight:600; cursor:pointer; w[...]
     .btn-login:hover { background:#c73652; }
     .btn-login:disabled { opacity:.5; cursor:not-allowed; }
     .login-msg { font-size:13px; text-align:center; margin-top:8px; min-height:18px; }
@@ -52,12 +52,12 @@
     .header-text { flex:1; }
     .header h1 { font-family:'Space Grotesk',sans-serif; font-size:20px; font-weight:700; color:#fff; }
     .header-user { font-size:12px; color:var(--text-muted); margin-top:2px; }
-    .btn-logout { background:transparent; border:1px solid var(--border); color:var(--text-muted); font-size:12px; padding:6px 12px; border-radius:var(--radius-sm); cursor:pointer; font-family:'Inter',sans-serif; transition:all .2s; white-space:nowrap; }
+    .btn-logout { background:transparent; border:1px solid var(--border); color:var(--text-muted); font-size:12px; padding:6px 12px; border-radius:var(--radius-sm); cursor:pointer; font-family:'In[...]
     .btn-logout:hover { border-color:var(--accent); color:var(--accent); }
 
     /* Tabs */
     .tabs { max-width:700px; margin:20px auto 0; padding:0 16px; display:flex; gap:8px; }
-    .tab-btn { flex:1; padding:10px 8px; border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--surface); color:var(--text-muted); font-family:'Inter',sans-serif; font-size:13px; font-weight:500; cursor:pointer; transition:all .2s; }
+    .tab-btn { flex:1; padding:10px 8px; border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--surface); color:var(--text-muted); font-family:'Inter',sans-serif; font-si[...]
     .tab-btn.active { background:var(--accent); border-color:var(--accent); color:#fff; }
 
     /* Content */
@@ -109,7 +109,7 @@
     .upload-remove:hover { color:var(--accent); }
 
     /* Botões */
-    .btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:12px 24px; border-radius:var(--radius-sm); font-family:'Inter',sans-serif; font-size:14px; font-weight:600; cursor:pointer; border:none; transition:all .2s; }
+    .btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:12px 24px; border-radius:var(--radius-sm); font-family:'Inter',sans-serif; font-size:14px; font-weight[...]
     .btn-primary { background:var(--accent); color:#fff; width:100%; margin-top:20px; }
     .btn-primary:hover { background:#c73652; }
     .btn-primary:disabled { opacity:.5; cursor:not-allowed; }
@@ -117,7 +117,7 @@
     .btn-danger:hover { background:#ff444420; }
 
     /* Toast */
-    .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(80px); background:var(--success); color:#000; padding:12px 24px; border-radius:30px; font-weight:600; font-size:14px; z-index:999; transition:transform .3s ease; white-space:nowrap; }
+    .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(80px); background:var(--success); color:#000; padding:12px 24px; border-radius:30px; font-weight:600; fon[...]
     .toast.show  { transform:translateX(-50%) translateY(0); }
     .toast.error { background:var(--accent); color:#fff; }
 
@@ -127,12 +127,12 @@
     .stat-value { font-family:'Space Grotesk',sans-serif; font-size:22px; font-weight:700; color:var(--accent); }
     .stat-label { font-size:11px; color:var(--text-muted); margin-top:4px; text-transform:uppercase; letter-spacing:.5px; }
 
-    .run-item  { background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius); padding:16px; margin-bottom:12px; display:grid; grid-template-columns:1fr auto; gap:12px; align-items:start; transition:border-color .2s; }
+    .run-item  { background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius); padding:16px; margin-bottom:12px; display:grid; grid-template-columns:1fr auto; gap:12px;[...]
     .run-item:hover { border-color:var(--accent); }
     .run-name  { font-family:'Space Grotesk',sans-serif; font-size:15px; font-weight:600; color:var(--text); margin-bottom:6px; }
     .run-meta  { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
     .run-extra { display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; }
-    .run-badge { background:var(--surface); border:1px solid var(--border); border-radius:20px; font-size:12px; padding:3px 10px; color:var(--text-muted); display:flex; align-items:center; gap:4px; }
+    .run-badge { background:var(--surface); border:1px solid var(--border); border-radius:20px; font-size:12px; padding:3px 10px; color:var(--text-muted); display:flex; align-items:center; gap:4p[...]
     .run-badge.highlight  { border-color:var(--accent);  color:var(--accent); }
     .run-badge.link-badge { border-color:var(--accent4); color:var(--accent4); text-decoration:none; }
     .run-badge.link-badge:hover { background:#60a5fa18; }
@@ -239,10 +239,11 @@
       </div>
     </div>
 
+    <!-- ✅ FIXO: Ordem corrigida para corresponder ao array ['novo','historico','painel'] -->
     <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('novo')">＋ Nova</button>
+      <button class="tab-btn" onclick="switchTab('historico')">📋 Histórico</button>
       <button class="tab-btn" onclick="switchTab('painel')">📊 Painel</button>
-      <button class="tab-btn active" onclick="switchTab('historico')">📋 Histórico</button>
-      <button class="tab-btn" onclick="switchTab('novo')">＋ Nova</button>
     </div>
 
     <div class="content">
@@ -535,11 +536,11 @@
       var linkRes = document.getElementById('linkResultado').value.trim();
 
       if (!nome||!data||!km||!tempo) { showToast('⚠️ Preencha nome, data, KM e tempo.', true); return; }
-      // ✅ Validação melhorada com a nova funçãoif (!validarTempo(tempo))      { showToast('⚠️ Tempo inválido. Use hh:mm:ss ou mm:ss.', true); return; }
 
+      // ✅ Validação melhorada com a nova função
       var validacao = validarKMeTempo(km, tempo);
       if (!validacao.valido) { showToast(validacao.erro, true); return; }
-      
+
       var btn = document.getElementById('btn-salvar');
       btn.disabled = true; btn.textContent = 'Salvando…';
 
@@ -661,12 +662,9 @@
       }
       var cronologico = dados.slice().reverse();
       var totalKm  = dados.reduce(function(a,d){ return a+(parseFloat(d.KM)||0); },0);
-      //var pacesSeg = dados.map(function(d){ return parsePace(d['Pace (min/km)']); }).filter(function(v){ return !isNaN(v); });
-      //var melhor   = pacesSeg.length ? Math.min.apply(null,pacesSeg) : null;
       var estatisticas = obterEstatisticasPace(dados);
       var melhor   = estatisticas.melhor;
       var mediP    = estatisticas.media;  // ou use .mediano para versão mais robusta
-      //var mediP    = pacesSeg.length ? pacesSeg.reduce(function(a,b){ return a+b; },0)/pacesSeg.length : null;
       var maiorKm  = Math.max.apply(null,dados.map(function(d){ return parseFloat(d.KM)||0; }));
       var comCert  = dados.filter(function(d){ return d['Certificado']&&String(d['Certificado']).startsWith('http'); }).length;
 
@@ -710,14 +708,14 @@
         xlabels+='<text x="'+xPos(i)+'" y="'+(H-4)+'" text-anchor="middle" font-size="9" fill="#8888aa">'+escHtml(sh)+'</text>';
       }
       var dots=kms.map(function(v,i){return '<circle cx="'+xPos(i)+'" cy="'+yPos(v)+'" r="3.5" fill="#e94560" stroke="#0f0f1a" stroke-width="1.5"><title>'+escHtml(dados[i].Nome||'')+': '+v+' km</title></circle>';}).join('');
-      wrap.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="ag" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#e94560" stop-opacity="0.25"/><stop offset="100%" stop-color="#e94560" stop-opacity="0"/></linearGradient></defs>'+grades+'<path d="'+area+'" fill="url(#ag)"/><polyline points="'+pts+'" fill="none" stroke="#e94560" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>'+dots+xlabels+'</svg>';
+      wrap.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="ag" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#e94560" stop-opacity="0.3"/><stop offset="100%" stop-color="#e94560" stop-opacity="0.05"/></linearGradient></defs>'+grades+'<polyline points="'+pts+'" fill="none" stroke="#e94560" stroke-width="2"/><path d="'+area+'" fill="url(#ag)"/>'+dots+xlabels+'</svg>';
     }
 
     function renderTopPaces(dados){
       var com=dados.map(function(d){return{nome:d.Nome,pace:parsePace(d['Pace (min/km)']),paceStr:d['Pace (min/km)'],km:d.KM,data:formatarData(d.Data)};}).filter(function(d){return !isNaN(d.pace);}).sort(function(a,b){return a.pace-b.pace;}).slice(0,5);
       if(!com.length){document.getElementById('top-paces').innerHTML='<div class="empty"><p>Sem dados</p></div>';return;}
       var medals=['gold','silver','bronze','other','other'],nums=['🥇','🥈','🥉','4','5'];
-      document.getElementById('top-paces').innerHTML=com.map(function(d,i){return '<div class="top-item"><div class="top-rank '+medals[i]+'">'+nums[i]+'</div><div class="top-info"><div class="top-name">'+escHtml(d.nome||'–')+'</div><div class="top-sub">'+d.data+' · '+(d.km||'–')+' km</div></div><div class="top-pace">'+(d.paceStr||'–')+'</div></div>';}).join('');
+      document.getElementById('top-paces').innerHTML=com.map(function(d,i){return '<div class="top-item"><div class="top-rank '+medals[i]+'">'+nums[i]+'</div><div class="top-info"><div class="top-name">'+escHtml(d.nome)+'</div><div class="top-sub">'+d.data+' • '+d.km+' km</div></div><div class="top-pace">'+d.paceStr+'</div></div>';}).join('');
     }
 
     function renderPaceBars(dados){
@@ -725,21 +723,21 @@
       if(!com.length){document.getElementById('pace-bars').innerHTML='<div class="empty"><p>Sem dados</p></div>';return;}
       var paces=com.map(function(d){return parsePace(d['Pace (min/km)']);});
       var maxP=Math.max.apply(null,paces)||1;
-      document.getElementById('pace-bars').innerHTML=com.map(function(d,i){var pct=(paces[i]/maxP*100).toFixed(1);return '<div class="pace-bar-wrap"><div class="pace-bar-label"><span class="pace-bar-name">'+escHtml(d.Nome||'–')+'</span><span class="pace-bar-val">'+(d['Pace (min/km)']||'–')+'</span></div><div class="pace-bar-track"><div class="pace-bar-fill" style="width:'+pct+'%"></div></div></div>';}).join('');
+      document.getElementById('pace-bars').innerHTML=com.map(function(d,i){var pct=(paces[i]/maxP*100).toFixed(1);return '<div class="pace-bar-wrap"><div class="pace-bar-label"><span class="pace-bar-name">'+escHtml(d.Nome)+'</span><span class="pace-bar-val">'+d['Pace (min/km)']+'</span></div><div class="pace-bar-track"><div class="pace-bar-fill" style="width:'+pct+'%"></div></div></div>';}).join('');
     }
 
     function renderDistribuicao(dados){
       var faixas=[{l:'Até 5 km',mn:0,mx:5},{l:'5 – 10 km',mn:5,mx:10},{l:'10 – 21 km',mn:10,mx:21},{l:'21 – 42 km',mn:21,mx:42},{l:'42 km +',mn:42,mx:Infinity}];
       var cnts=faixas.map(function(f){return dados.filter(function(d){var v=parseFloat(d.KM)||0;return v>=f.mn&&v<f.mx;}).length;});
       var maxC=Math.max.apply(null,cnts)||1;
-      document.getElementById('dist-chart').innerHTML=faixas.map(function(f,i){return '<div class="dist-bar"><div class="dist-label">'+f.l+'</div><div class="dist-track"><div class="dist-fill" style="width:'+(cnts[i]/maxC*100).toFixed(1)+'%"></div></div><div class="dist-count">'+cnts[i]+'</div></div>';}).join('');
+      document.getElementById('dist-chart').innerHTML=faixas.map(function(f,i){return '<div class="dist-bar"><div class="dist-label">'+f.l+'</div><div class="dist-track"><div class="dist-fill" style="width:'+(cnts[i]/maxC*100)+'%"></div></div><div class="dist-count">'+cnts[i]+'</div></div>';}).join('');
     }
 
     /* ═══════════════════════════════════
        UTILS
     ════════════════════════════════════ */
-    //✅ parsePace() → removida (agora em pace-utils.js) function parsePace(p){var m=String(p||'').match(/^(\d+):(\d+)/);return m?+m[1]*60+ +m[2]:NaN;}
-    //✅ formatPace() → removida (agora em pace-utils.js) function formatPace(s){return Math.floor(s/60)+':'+(s%60+'').padStart(2,'0')+' /km';}
+    // ✅ parsePace() → removida (agora em pace-utils.js)
+    // ✅ formatPace() → removida (agora em pace-utils.js)
     function formatarData(d){if(!d)return '–';var s=String(d);if(/^\d{4}-\d{2}-\d{2}/.test(s)){var p=s.substr(0,10).split('-');return p[2]+'/'+p[1]+'/'+p[0];}return s;}
     function formatBytes(b){if(b<1024)return b+'B';if(b<1048576)return (b/1024).toFixed(1)+' KB';return (b/1048576).toFixed(1)+' MB';}
     function escHtml(t){return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
