@@ -14,7 +14,7 @@
     *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
     :root {
       --bg:#0f0f1a; --surface:#1a1a2e; --surface2:#16213e;
-      --accent:#e94560; --accent2:#f5a623; --accent3:#4ade80; --accent4:#60a5fa;
+      --accent:#3b82f6; --accent2:#f5a623; --accent3:#4ade80; --accent4:#60a5fa;
       --text:#e8e8f0; --text-muted:#8888aa; --border:#2a2a45;
       --success:#4ade80; --radius:12px; --radius-sm:8px;
     }
@@ -240,9 +240,9 @@
     </div>
 
     <div class="tabs">
-      <button class="tab-btn active" onclick="switchTab('novo')">＋ Nova</button>
-      <button class="tab-btn" onclick="switchTab('historico')">📋 Histórico</button>
       <button class="tab-btn" onclick="switchTab('painel')">📊 Painel</button>
+      <button class="tab-btn active" onclick="switchTab('historico')">📋 Histórico</button>
+      <button class="tab-btn" onclick="switchTab('novo')">＋ Nova</button>
     </div>
 
     <div class="content">
