@@ -6,12 +6,7 @@
   <title>🏃 Registro de Corridas</title>
 
   <!-- ① SDK Supabase – DEVE vir antes do app.js -->
-   <!--  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script> -->
-  <!--<script src="https://unpkg.com/@supabase/supabase-js@2"></script>-->
-  <script type="module">
-  import * as supabase from 'https://esm.sh/@supabase/supabase-js@2'
-  window.supabase = supabase
-</script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet" />
 
@@ -191,6 +186,16 @@
     .dist-fill  { height:100%; border-radius:4px; background:var(--accent4); transition:width .6s ease; }
     .dist-count { font-size:12px; color:var(--text); width:30px; text-align:right; flex-shrink:0; }
 
+    /* Eventos / Calendário */
+    .event-item { background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius); padding:16px; margin-bottom:12px; display:grid; grid-template-columns:1fr auto; gap:12px; align-items:start; }
+    .event-item:hover { border-color:var(--accent); }
+    .event-name { font-family:'Space Grotesk',sans-serif; font-size:15px; font-weight:600; color:var(--text); margin-bottom:6px; }
+    .event-meta { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+    .event-badge { background:var(--surface); border:1px solid var(--border); border-radius:20px; font-size:12px; padding:3px 10px; color:var(--text-muted); display:flex; align-items:center; gap:4px; }
+    .event-badge.link-badge { border-color:var(--accent4); color:var(--accent4); text-decoration:none; cursor:pointer; }
+    .event-badge.link-badge:hover { background:#60a5fa18; }
+    .event-badge.price { border-color:var(--accent2); color:var(--accent2); }
+
     @media (max-width:480px) {
       .form-grid { grid-template-columns:1fr; }
       .stats-grid,.kpi-grid { grid-template-columns:1fr 1fr; }
@@ -244,11 +249,12 @@
       </div>
     </div>
 
-    <!-- ✅ FIXO: Ordem corrigida para corresponder ao array ['novo','historico','painel'] -->
+    <!-- ✅ FIXO: Ordem corrigida para corresponder ao array ['novo','historico','painel','calendario'] -->
     <div class="tabs">
       <button class="tab-btn active" onclick="switchTab('novo')">＋ Nova</button>
       <button class="tab-btn" onclick="switchTab('historico')">📋 Histórico</button>
       <button class="tab-btn" onclick="switchTab('painel')">📊 Painel</button>
+      <button class="tab-btn" onclick="switchTab('calendario')">📅 Calendário</button>
     </div>
 
     <div class="content">
@@ -349,12 +355,43 @@
         </div>
       </div>
 
+      <!-- ══ CALENDÁRIO ══ -->
+      <div id="panel-calendario" class="panel">
+        <div class="card">
+          <div class="card-title">📅 Novo Evento</div>
+          <div class="form-grid">
+            <div class="form-group full">
+              <label>Nome do Evento</label>
+              <input type="text" id="evento-nome" placeholder="Ex: Maratona de São Paulo" />
+            </div>
+            <div class="form-group">
+              <label>Data do Evento</label>
+              <input type="date" id="evento-data" />
+            </div>
+            <div class="form-group">
+              <label>Valor da Inscrição (R$)</label>
+              <input type="number" id="evento-valor" placeholder="Ex: 125.00" step="0.01" min="0" />
+            </div>
+            <div class="form-group full">
+              <label>Link do Evento</label>
+              <input type="url" id="evento-link" placeholder="https://www.evento.com.br" />
+            </div>
+          </div>
+          <button class="btn btn-primary" id="btn-salvar-evento" onclick="salvarEvento()">Cadastrar Evento</button>
+        </div>
+
+        <div class="card">
+          <div class="card-title">📅 Próximos Eventos</div>
+          <div id="lista-eventos"><div class="loading">Carregando eventos…</div></div>
+        </div>
+      </div>
+
     </div>
   </div>
 
   <div class="toast" id="toast"></div>
 
-  <!-- ② app.js DEVE vir depois do SDK acima -->
+  <!-- ② Scripts DEVEM vir depois do SDK acima -->
   <script src="pace-utils.js"></script>
   <script src="app.js"></script>
 
@@ -452,18 +489,20 @@
         if (e.key === 'Enter') autenticar();
       });
       document.getElementById('data').value = new Date().toISOString().slice(0,10);
+      document.getElementById('evento-data').value = new Date().toISOString().slice(0,10);
     });
 
     /* ═══════════════════════════════════
        TABS
     ════════════════════════════════════ */
     function switchTab(tab) {
-      var tabs = ['novo','historico','painel'];
+      var tabs = ['novo','historico','painel','calendario'];
       document.querySelectorAll('.tab-btn').forEach(function(b,i){ b.classList.toggle('active', tabs[i]===tab); });
       document.querySelectorAll('.panel').forEach(function(p){ p.classList.remove('active'); });
       document.getElementById('panel-'+tab).classList.add('active');
       if (tab==='historico') carregarHistorico();
       if (tab==='painel')    carregarPainel();
+      if (tab==='calendario') carregarCalendario();
     }
 
     /* ═══════════════════════════════════
@@ -576,8 +615,6 @@
     }
 
     function validarTempo(t) { return /^\d{1,2}:\d{2}(:\d{2})?$/.test(t); }
-
-    // ✅ calcularPace() → removida (agora em pace-utils.js com validações melhores)
 
     function limparForm() {
       ['nome','data','km','tempo','inscricao','linkResultado','observacoes'].forEach(function(id){ document.getElementById(id).value=''; });
@@ -739,11 +776,97 @@
     }
 
     /* ═══════════════════════════════════
+       CALENDÁRIO  ← Supabase
+    ════════════════════════════════════ */
+    async function carregarCalendario() {
+      document.getElementById('lista-eventos').innerHTML = '<div class="loading">Carregando eventos…</div>';
+      try {
+        var dados = await buscarEventos();
+        renderCalendario(dados);
+      } catch(e) {
+        document.getElementById('lista-eventos').innerHTML = '<div class="loading">❌ Erro ao carregar eventos.</div>';
+      }
+    }
+
+    function renderCalendario(dados) {
+      var lista = document.getElementById('lista-eventos');
+      if (!dados.length) {
+        lista.innerHTML = '<div class="empty"><div class="empty-icon">📅</div><p>Nenhum evento cadastrado ainda.</p></div>';
+        return;
+      }
+
+      lista.innerHTML = dados.map(function(d) {
+        var linkBtn = '';
+        if (d.Link && String(d.Link).startsWith('http')) {
+          linkBtn = '<a class="event-badge link-badge" href="'+escHtml(d.Link)+'" target="_blank" rel="noopener">🔗 Acessar</a>';
+        }
+
+        return '<div class="event-item"><div>'+
+          '<div class="event-name">'+escHtml(d.Nome)+'</div>'+
+          '<div class="event-meta">'+
+            '<span class="event-badge">📅 '+formatarData(d.Data)+'</span>'+
+            (d.Valor ? '<span class="event-badge price">💰 R$ '+formatarValor(d.Valor)+'</span>' : '')+
+          '</div>'+
+          (linkBtn ? '<div class="event-meta" style="margin-top:8px;">'+linkBtn+'</div>' : '')+
+        '</div>'+
+        '<button class="btn btn-danger" onclick="excluirEvento(\''+d.id+'\')">✕</button>'+
+        '</div>';
+      }).join('');
+    }
+
+    async function salvarEvento() {
+      if (!usuarioAtual) { showToast('⚠️ Sessão expirada. Faça login novamente.', true); return; }
+
+      var nome  = document.getElementById('evento-nome').value.trim();
+      var data  = document.getElementById('evento-data').value;
+      var valor = document.getElementById('evento-valor').value;
+      var link  = document.getElementById('evento-link').value.trim();
+
+      if (!nome || !data) { showToast('⚠️ Preencha nome e data do evento.', true); return; }
+
+      var btn = document.getElementById('btn-salvar-evento');
+      btn.disabled = true;
+      btn.textContent = 'Salvando…';
+
+      try {
+        await salvarEventoSupabase({
+          user_email: usuarioAtual.email,
+          nome:       nome,
+          data:       data,
+          valor:      valor ? parseFloat(valor) : null,
+          link:       link
+        });
+
+        showToast('✅ Evento cadastrado com sucesso!');
+        document.getElementById('evento-nome').value = '';
+        document.getElementById('evento-data').value = new Date().toISOString().slice(0,10);
+        document.getElementById('evento-valor').value = '';
+        document.getElementById('evento-link').value = '';
+        carregarCalendario();
+      } catch(e) {
+        showToast('❌ Erro ao cadastrar: ' + (e.message||e), true);
+      }
+
+      btn.disabled = false;
+      btn.textContent = 'Cadastrar Evento';
+    }
+
+    async function excluirEvento(id) {
+      if (!confirm('Remover este evento?')) return;
+      try {
+        await excluirEventoSupabase(id);
+        showToast('🗑️ Evento excluído.');
+        carregarCalendario();
+      } catch(e) {
+        showToast('❌ Erro ao excluir.', true);
+      }
+    }
+
+    /* ═══════════════════════════════════
        UTILS
     ════════════════════════════════════ */
-    // ✅ parsePace() → removida (agora em pace-utils.js)
-    // ✅ formatPace() → removida (agora em pace-utils.js)
     function formatarData(d){if(!d)return '–';var s=String(d);if(/^\d{4}-\d{2}-\d{2}/.test(s)){var p=s.substr(0,10).split('-');return p[2]+'/'+p[1]+'/'+p[0];}return s;}
+    function formatarValor(v){return parseFloat(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
     function formatBytes(b){if(b<1024)return b+'B';if(b<1048576)return (b/1024).toFixed(1)+' KB';return (b/1048576).toFixed(1)+' MB';}
     function escHtml(t){return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
   </script>
