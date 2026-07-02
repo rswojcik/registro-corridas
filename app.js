@@ -16,7 +16,7 @@
 // Substitua pelos valores reais do seu projeto Supabase:
 // Supabase → Project Settings → API
 const SUPABASE_URL = "https://pxsxjizjiqbjgndrosil.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB4c3hqaXpqaXFiamduZHJvc2lsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIzMDQ1MzEsImV4cCI6MjA5Nzg4MDUzMX0.ZN69qRmZl...";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB4c3hqaXpqaXFiamduZHJvc2lsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIzMDQ1MzEsImV4cCI6MjA5Nzg4MDUzMX0.ZN69qRmZlZLWkp3bHehDODyyh4vUQLaxGlqgyKOSoH0";
 
 // O SDK é carregado no <head> do index.html antes deste arquivo
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
